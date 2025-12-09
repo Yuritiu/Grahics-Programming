@@ -1,0 +1,23 @@
+﻿C:\Program Files\Microsoft Visual Studio\2022\Community\MSBuild\Microsoft\VC\v170\Microsoft.CppBuild.targets(534,5): warning MSB8028: The intermediate directory (Debug\) contains files shared from another project (Lab2.vcxproj).  This can lead to incorrect clean and rebuild behavior.
+  Audio.cpp
+  Display.cpp
+  main.cpp
+  MainGame.cpp
+B:\GCU work\Year 4\Graphics Programming\Graphics Programming\Graphics Programming\Lab1\MainGame.cpp(17,10): warning C4930: 'Texture texture(void)': prototyped function not called (was a variable definition intended?)
+B:\GCU work\Year 4\Graphics Programming\Graphics Programming\Graphics Programming\Lab1\MainGame.cpp(15,9): warning C4930: 'Shader rimShader(void)': prototyped function not called (was a variable definition intended?)
+B:\GCU work\Year 4\Graphics Programming\Graphics Programming\Graphics Programming\Lab1\MainGame.cpp(16,9): warning C4930: 'Shader geoShader(void)': prototyped function not called (was a variable definition intended?)
+B:\GCU work\Year 4\Graphics Programming\Graphics Programming\Graphics Programming\Lab1\MainGame.cpp(14,9): warning C4930: 'Shader toonShader(void)': prototyped function not called (was a variable definition intended?)
+B:\GCU work\Year 4\Graphics Programming\Graphics Programming\Graphics Programming\Lab1\MainGame.cpp(13,9): warning C4930: 'Shader fogShader(void)': prototyped function not called (was a variable definition intended?)
+B:\GCU work\Year 4\Graphics Programming\Graphics Programming\Graphics Programming\Lab1\MainGame.cpp(18,10): warning C4930: 'Texture texture1(void)': prototyped function not called (was a variable definition intended?)
+B:\GCU work\Year 4\Graphics Programming\Graphics Programming\Graphics Programming\Lab1\MainGame.cpp(224,21): warning C4305: 'argument': truncation from 'double' to 'float'
+B:\GCU work\Year 4\Graphics Programming\Graphics Programming\Graphics Programming\Lab1\MainGame.cpp(247,21): warning C4305: 'argument': truncation from 'double' to 'float'
+  Mesh.cpp
+B:\GCU work\Year 4\Graphics Programming\Graphics Programming\Graphics Programming\Lab1\Mesh.cpp(62,9): warning C4930: 'Sphere meshSphere(void)': prototyped function not called (was a variable definition intended?)
+  obj_loader.cpp
+B:\GCU work\Year 4\Graphics Programming\Graphics Programming\Graphics Programming\Lab1\obj_loader.cpp(378,16): warning C4244: 'return': conversion from 'double' to 'float', possible loss of data
+  Shader.cpp
+  SkyBox.cpp
+  Texture.cpp
+  Generating Code...
+  stb_image.c
+  Lab1.vcxproj -> B:\GCU work\Year 4\Graphics Programming\Graphics Programming\Graphics Programming\Debug\Lab1.exe
