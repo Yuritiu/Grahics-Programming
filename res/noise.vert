@@ -1,16 +1,23 @@
-#version 400
+#version 330 core
 
 layout (location = 0) in vec3 VertexPosition;
-layout (location = 1) in vec2 TextC;
+layout (location = 1) in vec2 VertexTexCoord;
+layout (location = 2) in vec3 VertexNormal;
 
-out vec2 vUv;
-out vec3 vN;
-out vec4 v_pos; 
-uniform mat4 transform;
+out VS_OUT
+{
+    vec3 WorldPos;
+    vec2 TexCoord;
+} vs_out;
+
+uniform mat4 transform;   // set from C++ via noiseShader.Update
 
 void main()
 {
-	v_pos = transform * vec4(VertexPosition, 1.0);
-	vUv = TextC;
-	gl_Position = transform * vec4(VertexPosition, 1.0);
+    vec4 worldPos = transform * vec4(VertexPosition, 1.0);
+
+    vs_out.WorldPos = worldPos.xyz;
+    vs_out.TexCoord = VertexTexCoord;
+
+    gl_Position = worldPos;
 }

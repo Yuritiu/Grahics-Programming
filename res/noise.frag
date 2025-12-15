@@ -1,59 +1,46 @@
-#version 400
+#version 330 core
+
+in VS_OUT
+{
+    vec3 WorldPos;
+    vec2 TexCoord;
+} fs_in;
+
+out vec4 FragColor;
+
+uniform sampler2D texture1;   // bound to GL_TEXTURE0 (noise.png)
+uniform sampler2D texture2;   // bound to GL_TEXTURE1 (lava3.jpg)
 
 uniform float time;
-
-uniform float maxDist; //fog max distance
-uniform float minDist; //fog min distance
 uniform float fogDensity;
-uniform vec3 fogColor;
+uniform vec3  fogColor;
+uniform float maxDist;
+uniform float minDist;
 
-uniform sampler2D texture1;
-uniform sampler2D texture2;
+void main()
+{
+    vec2 uv = fs_in.TexCoord;
 
+    // Fake "noise" factor animated over time: value in [0,1]
+    float n = 0.5 + 0.5 * sin(10.0 * uv.x + 4.0 * time) * cos(10.0 * uv.y - 4.0 * time);
 
-in vec2 vUv;
-in vec4 v_pos;
-out vec4 FragColour;
+    // Two textures: one slower, one faster / scaled
+    vec3 col1 = texture(texture1, uv + vec2(time * 0.05, 0.0)).rgb;
+    vec3 col2 = texture(texture2, uv * 2.0 + vec2(0.0, time * 0.05)).rgb;
 
-void main() {
+    // Blend using animated "noise" factor – applies over the WHOLE surface
+    vec3 lava = mix(col1, col2, n);
 
-	vec2 position = - 1.0 + 2.0 * vUv;
+    // ----- Fog based on distance from origin -----
+    float dist = length(fs_in.WorldPos);
 
-	vec4 noise = texture2D( texture1, vUv ); //noise texture
-	vec2 T1 = vUv + vec2( 1.5, - 1.5 ) *  0.2 * time; // "time" 'animates' the texture
-	vec2 T2 = vUv + vec2( - 0.5, 2.0 ) *  0.1 * time; // as above
+    // Simple linear fog factor between minDist and maxDist
+    float fogFactor = clamp((maxDist - dist) / (maxDist - minDist), 0.0, 1.0);
 
-	T1.x += noise.x * 4; //offset change these 4 values to see the change in frequency, see notes at end of shader.
-	T1.y += noise.y * 2;
-	T2.x -= noise.y * 0.2; //this just offsets the texture coordinates
-	T2.y += noise.z * 0.2; // but allows us to offset y&z in opposite directions
+    // Make it a bit denser using fogDensity
+    fogFactor = pow(fogFactor, fogDensity * 2.0);
 
-	float p = texture2D( texture1, T1).a; //get the alpha from the noise texture
+    vec3 finalColor = mix(fogColor, lava, fogFactor);
 
-	vec4 color = texture2D( texture2, T2); //coloured texture offset can here or above
-				
-	vec4 temp = color * ( vec4(p) * 2.0 ) + color; //add/remove the last colour
-
-	if( temp.r > 1.0 ) { temp.bg += clamp( temp.r - 2.0, 0.0, 100.0 ); } // again play about with these
-	if( temp.g > 1.0 ) { temp.rb += temp.g - 1.0; }
-	if( temp.b > 1.0 ) { temp.rg += temp.b - 1.0; } // = vec2(0.0,0.0)
-
-	FragColour = temp;
-
-	float dist = abs( v_pos.z ); //absolute value
-	float fogFactor = (maxDist - dist)/(maxDist - minDist);
-	fogFactor = clamp( fogFactor, 0.0, 1.0 ); // constrain range
-
-	FragColour = mix( FragColour, vec4( fogColor, FragColour.w ), fogFactor );
-
+    FragColor = vec4(finalColor, 1.0);
 }
-
-//A quad with the texture coordinates 0,0 on the one corner and 2,2 on the other corner, 
-//means the texture is tiled 4 times, 2 times in each direction.
-//
-//Now if you have the same quad with 4,4 on the other corner instead you have the texture 
-//tiled 16 times, 4 times in each direction.
-//
-//If you increase the texture coordinates without increasing the size of the quad you are 
-//drawing a larger portion of the texture on the same surface, thus making the texture itself 
-//look smaller. AND in our case increasing the frequncy (amount) of alpha channel information.

@@ -39,6 +39,7 @@ private:
 	GameState _gameState;
 	Mesh mesh1;
 	Mesh mesh2;
+	Mesh mesh3;
 	Camera myCamera;
 	Shader fogShader;
 	Shader toonShader;
@@ -62,5 +63,11 @@ private:
 	float counter;
 	unsigned int whistle;
 	unsigned int backGroundMusic;
+	
+	float camSpeed = 0.1f;
+	float mouseSensitivity = 0.1f;
+
+	float yaw = -90.0f;  // looking along -Z initially
+	float pitch = 0.0f;
 };
 

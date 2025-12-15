@@ -53,6 +53,18 @@ public:
 		pos += glm::cross(up, forward) * amt;
 	}
 
+	// Move the camera up/down along its up vector (for Q/E)
+	void MoveUp(float amt)
+	{
+		pos += up * amt;
+	}
+
+	// Directly set the forward direction (for mouse look)
+	void setForward(const glm::vec3& dir)
+	{
+		forward = glm::normalize(dir);
+	}
+
 	void Pitch(float angle)
 	{
 		glm::vec3 right = glm::normalize(glm::cross(up, forward));
