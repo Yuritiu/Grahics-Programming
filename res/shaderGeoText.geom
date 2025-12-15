@@ -4,7 +4,7 @@ layout (triangles) in;
 layout (triangle_strip, max_vertices = 3) out;
 
 in VS_OUT {
-    vec3 ObjPos;
+    vec3 Position;
     vec3 Normal;
     vec2 TexCoord;
 } gs_in[];
@@ -17,9 +17,9 @@ uniform float time;
 
 vec3 explode(vec3 pos, vec3 normal)
 {
-    float strength = 0.5 * sin(time * 2.0) + 0.5; // 0..1 pulse
-    float magnitude = 0.15;                       // tweak if needed
-    return pos + normalize(normal) * strength * magnitude;
+    float strength  = sin(time) * 0.5 + 0.5;   // 0..1
+    float magnitude = 25.0;                    // increase if you want more
+    return pos + normal * strength * magnitude;
 }
 
 void main()
@@ -29,7 +29,7 @@ void main()
         gNormal   = gs_in[i].Normal;
         gTexCoord = gs_in[i].TexCoord;
 
-        vec3 p = explode(gs_in[i].ObjPos, gs_in[i].Normal);
+        vec3 p = explode(gs_in[i].Position, gs_in[i].Normal);
         gl_Position = transform * vec4(p, 1.0);
 
         EmitVertex();

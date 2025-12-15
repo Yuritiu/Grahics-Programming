@@ -7,15 +7,11 @@ out vec4 FragColor;
 
 uniform sampler2D diffuse;
 
-// keep these so your C++ setFloat() calls still succeed
-uniform float randColourX;
-uniform float randColourY;
-uniform float randColourZ;
-
 void main()
 {
     vec3 base = texture(diffuse, gTexCoord).rgb;
 
+    // simple lighting so it doesn't look flat
     vec3 N = normalize(gNormal);
     vec3 L = normalize(vec3(0.5, 1.0, 0.3));
     float diff = max(dot(N, L), 0.2);

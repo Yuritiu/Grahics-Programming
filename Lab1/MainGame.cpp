@@ -41,12 +41,15 @@ void MainGame::initSystems()
 	fogShader.init("..\\res\\fogShader.vert", "..\\res\\fogShader.frag"); //new shader
 	toonShader.init("..\\res\\shaderToon.vert", "..\\res\\shaderToon.frag"); //new shader
 	rimShader.init("..\\res\\shaderRim.vert", "..\\res\\shaderRim.frag");
+	outlineShader.init("..\\res\\outline.vert", "..\\res\\outline.frag");
+	eMapping.init("..\\res\\shaderReflection.vert", "..\\res\\shaderReflection.frag");
 	eMapping.init("..\\res\\shaderReflection.vert", "..\\res\\shaderReflection.frag");
 	noiseShader.init("..\\res\\noise.vert", "..\\res\\noise.frag"); //new shader
 	pass.init("..\\res\\shader.vert", "..\\res\\shader.frag");
 	texture.init("..\\res\\noise.png"); //load texture
 	texture1.init("..\\res\\lava3.jpg"); //load texture
 	texture2.init("..\\res\\Water.jpg"); //load texture
+	earthTex.init("..\\res\\earth.jpg");
 	glow.init("..\\res\\glow.vert", "..\\res\\glow.frag");
 	geoShader.initGeo();
 
@@ -183,17 +186,41 @@ void MainGame::linkFogShader()
 
 void MainGame::linkToon()
 {
+	glm::vec3 pos = glm::vec3(5.0f, 0.0f, 0.0f);
+	glm::vec3 rot = glm::vec3(0.0f, 0.0f, 0.0f);
+	glm::vec3 scale = glm::vec3(1.0f);
+
+	// ===== Pass 1: normal toon =====
 	toonShader.Bind();
 	toonShader.setVec3("lightDir", glm::vec3(0.5f, 0.5f, 0.5f));
 
-	transform.SetPos(glm::vec3(2.0f, 0.0f, 0.0f));
-	transform.SetRot(glm::vec3(0.0f, 0.0f, 0.0f));
-	transform.SetScale(glm::vec3(1.0f));
+	transform.SetPos(pos);
+	transform.SetRot(rot);
+	transform.SetScale(scale);
 
 	toonShader.Update(transform, myCamera);
-
 	mesh2.draw();
+
+	// ===== Pass 2: outline =====
+	// Draw the slightly scaled-up backfaces as a silhouette.
+	glEnable(GL_CULL_FACE);
+	glCullFace(GL_FRONT);              // render back faces only (outline trick)
+
+	outlineShader.Bind();
+	outlineShader.setVec3("outlineColor", glm::vec3(0.0f, 0.0f, 0.0f)); // black outline
+
+	transform.SetPos(pos);
+	transform.SetRot(rot);
+	transform.SetScale(scale * 1.05f);  // slightly bigger than pass 1
+
+	outlineShader.Update(transform, myCamera);
+	mesh2.draw();
+
+	// Restore default culling
+	glCullFace(GL_BACK);
+	glDisable(GL_CULL_FACE);
 }
+
 
 void MainGame::linkGeo()
 {
@@ -209,15 +236,15 @@ void MainGame::linkGeo()
 	geoShader.setFloat("time", counter);
 
 	transform.SetPos(glm::vec3(-4.0f, 0.0f, -4.0f));
-	transform.SetRot(glm::vec3(0.0f, counter * 1.0f, 0.0f));
-	transform.SetScale(glm::vec3(0.25f)); // adjust as needed
+	transform.SetRot(glm::vec3(0.0f, counter * 0.5f, 0.0f));
+	transform.SetScale(glm::vec3(0.01f));
 
 	geoShader.Update(transform, myCamera);
 
 	// bind texture for skull
 	GLint loc = glGetUniformLocation(geoShader.getID(), "diffuse");
 	glActiveTexture(GL_TEXTURE0);
-	glBindTexture(GL_TEXTURE_2D, texture1.getID()); // or a dedicated skull texture
+	glBindTexture(GL_TEXTURE_2D, texture1.getID()); 
 	glUniform1i(loc, 0);
 
 	mesh3.draw();
@@ -241,65 +268,97 @@ void MainGame::linkEmapping()
 {
 	glEnable(GL_BLEND);
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+
 	eMapping.Bind();
 
-	eMapping.setMat4("model", transform.GetModel());
+	// Orbit parameters
+	float radius = 3.0f;
+	float orbitSpeed = 1.0f;
+	float orbitAngle = counter * orbitSpeed;
+
+	float x = radius * cos(orbitAngle);
+	float z = radius * sin(orbitAngle);
+
+	// rotation of the ball itself
+	float spinSpeed = 3.0f;
+	float spinAngle = counter * spinSpeed;
+
+	transform.SetPos(glm::vec3(x, 0.0f, z));
+	transform.SetRot(glm::vec3(0.0f, spinAngle, 180.0f));   // spin around Y
+	transform.SetScale(glm::vec3(0.6f));
+
 	eMapping.setVec3("cameraPos", myCamera.getPos());
 
-	GLuint t1L = glGetUniformLocation(eMapping.getID(), "diffuse");
+	// Bind Earth texture
+	GLint t1L = glGetUniformLocation(eMapping.getID(), "diffuse");
 	glActiveTexture(GL_TEXTURE0);
-	glBindTexture(GL_TEXTURE_2D, texture2.getID());
+	glBindTexture(GL_TEXTURE_2D, earthTex.getID());
 	glUniform1i(t1L, 0);
 
-	float radius = 3.0f; // distance from the big sphere
-	float angle = counter; // rotation speed
-	float x = radius * cos(angle);
-	float z = radius * sin(angle);
-
-	transform.SetPos(glm::vec3(x, 0.0f, z)); // orbit around origin
-	transform.SetRot(glm::vec3(0.0f, counter / 10, 0.0f));
-	transform.SetScale(glm::vec3(0.6f)); // still the smaller sphere
-
+	// Upload MVP etc.
 	eMapping.Update(transform, myCamera);
+
 	mesh1.draw();
 }
 
 void MainGame::linkNoise()
 {
-	glEnable(GL_BLEND);
-	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+	glDisable(GL_BLEND);
+	glEnable(GL_DEPTH_TEST);
+	glDepthMask(GL_TRUE);
+
 	noiseShader.Bind();
-	noiseShader.setFloat("time", counter / 20);
-	noiseShader.setFloat("fogDensity", 0.5);
-	noiseShader.setVec3("fogColor", 0.0f, 0.0f, 0.5f);
-	noiseShader.setFloat("maxDist", 10.0f);
-	noiseShader.setFloat("minDist", 0.0f);
-	GLuint t1L = glGetUniformLocation(noiseShader.getID(), "texture1"); //texture 1 location
+
+	noiseShader.setFloat("fogDensity", 0.08f);
+	noiseShader.setVec3("fogColor", 0.10f, 0.05f, 0.18f);
+	noiseShader.setFloat("minDist", 0.6f);
+	noiseShader.setFloat("maxDist", 1.0f);
+
+	// Bind lava texture as texture2
 	GLuint t2L = glGetUniformLocation(noiseShader.getID(), "texture2");
+	glActiveTexture(GL_TEXTURE0);
+	glBindTexture(GL_TEXTURE_2D, texture1.getID());   // lava3.jpg
+	glUniform1i(t2L, 0);
 
-	//set textures
-	glActiveTexture(GL_TEXTURE0); //set acitve texture unit
-	glBindTexture(GL_TEXTURE_2D, texture.getID());
-	glUniform1i(t1L, 0);
-
-	glActiveTexture(GL_TEXTURE1); //set acitve texture unit
-	glBindTexture(GL_TEXTURE_2D, texture1.getID());
-	glUniform1i(t2L, 1);
-
-	//type of and texture to bind to unit
-
-
-	transform.SetPos(glm::vec3(0.0, 0.0, 0.0));
-	transform.SetRot(glm::vec3(0.0, 10, 0.0));
-	transform.SetScale(glm::vec3(1.2, 1.2, 1.2));
-
-	//myCamera.MoveRight(0.0001);
+	transform.SetPos(glm::vec3(0.0f));
+	transform.SetRot(glm::vec3(0.0f, 10.0f, 0.0f));
+	transform.SetScale(glm::vec3(1.2f));
 
 	noiseShader.Update(transform, myCamera);
-
-
-
 	mesh1.draw();
+}
+
+void MainGame::linkGlowBall()
+{
+	glDisable(GL_CULL_FACE);
+
+	glEnable(GL_BLEND);
+	glBlendFunc(GL_SRC_ALPHA, GL_ONE);
+
+	glEnable(GL_DEPTH_TEST);
+	glDepthMask(GL_FALSE);
+
+
+	glow.Bind();
+
+	// Use the SAME transform as the lava sphere, but slightly larger
+	transform.SetPos(glm::vec3(0.0f));
+	transform.SetRot(glm::vec3(0.0f, 10.0f, 0.0f));
+	transform.SetScale(glm::vec3(1.2f * 1.03f));
+
+	glow.setVec3("glowColor", glm::vec3(1.0f, 0.35f, 0.15f)); // orange-red
+	glow.setFloat("glowPower", 3.0f);                         // higher = thinner rim
+	glow.setFloat("glowStrength", 0.8f);                      // alpha strength
+
+	glow.Update(transform, myCamera);
+	mesh1.draw();
+
+	// Restore defaults
+	glDepthMask(GL_TRUE);
+	glDisable(GL_BLEND);
+
+	glCullFace(GL_BACK);
+	glDisable(GL_CULL_FACE);
 }
 
 void MainGame::drawGame()
@@ -316,6 +375,7 @@ void MainGame::drawGame()
 	linkGeo(); // exploding skull (mesh3)
 	//linkRimLighting();
 	linkNoise();
+	linkGlowBall();   
 
 	//myCamera.MoveRight(0.0001);
 	//myCamera.setLook(mesh1.getSpherePos());

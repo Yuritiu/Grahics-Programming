@@ -1,46 +1,50 @@
-#version 330 core
+#version 400
 
-in VS_OUT
-{
-    vec3 WorldPos;
-    vec2 TexCoord;
-} fs_in;
+uniform sampler2D texture2;
 
-out vec4 FragColor;
-
-uniform sampler2D texture1;   // bound to GL_TEXTURE0 (noise.png)
-uniform sampler2D texture2;   // bound to GL_TEXTURE1 (lava3.jpg)
-
-uniform float time;
-uniform float fogDensity;
-uniform vec3  fogColor;
 uniform float maxDist;
 uniform float minDist;
+uniform float fogDensity;
+uniform vec3 fogColor;
+
+in vec3 vObjPos;
+in vec3 vObjN;
+
+out vec4 FragColour;
+
+vec2 rot90(vec2 uv) { return vec2(-uv.y, uv.x); }
+
+vec3 triplanar(sampler2D tex, vec3 pos, vec3 n, float scale)
+{
+    // Very soft blending
+    vec3 w = abs(n);
+    w = w / (w.x + w.y + w.z + 1e-6);
+
+    vec2 uvX = pos.zy * scale;   // projection for faces pointing ±X
+    vec2 uvY = pos.xz * scale;   // projection for faces pointing ±Y
+    vec2 uvZ = pos.xy * scale;   // projection for faces pointing ±Z
+
+    // Rotate two projections so all three “flow” similarly
+    uvY = rot90(uvY);
+    uvZ = rot90(uvZ);
+
+    vec3 x = texture(tex, uvX).rgb;
+    vec3 y = texture(tex, uvY).rgb;
+    vec3 z = texture(tex, uvZ).rgb;
+
+    return x * w.x + y * w.y + z * w.z;
+}
 
 void main()
 {
-    vec2 uv = fs_in.TexCoord;
+    vec3 base = triplanar(texture2, vObjPos, normalize(vObjN), 0.08);
 
-    // Fake "noise" factor animated over time: value in [0,1]
-    float n = 0.5 + 0.5 * sin(10.0 * uv.x + 4.0 * time) * cos(10.0 * uv.y - 4.0 * time);
+    // Depth-based fog (stable, doesn’t require world pos)
+    float d = clamp(gl_FragCoord.z, 0.0, 1.0);
 
-    // Two textures: one slower, one faster / scaled
-    vec3 col1 = texture(texture1, uv + vec2(time * 0.05, 0.0)).rgb;
-    vec3 col2 = texture(texture2, uv * 2.0 + vec2(0.0, time * 0.05)).rgb;
-
-    // Blend using animated "noise" factor – applies over the WHOLE surface
-    vec3 lava = mix(col1, col2, n);
-
-    // ----- Fog based on distance from origin -----
-    float dist = length(fs_in.WorldPos);
-
-    // Simple linear fog factor between minDist and maxDist
-    float fogFactor = clamp((maxDist - dist) / (maxDist - minDist), 0.0, 1.0);
-
-    // Make it a bit denser using fogDensity
+    float fogFactor = clamp((maxDist - d) / (maxDist - minDist), 0.0, 1.0);
     fogFactor = pow(fogFactor, fogDensity * 2.0);
 
-    vec3 finalColor = mix(fogColor, lava, fogFactor);
-
-    FragColor = vec4(finalColor, 1.0);
+    vec3 finalColour = mix(fogColor, base, fogFactor);
+    FragColour = vec4(finalColour, 1.0);
 }

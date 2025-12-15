@@ -91,6 +91,7 @@
     <ClInclude Include="MainGame.h" />
     <ClInclude Include="Mesh.h" />
     <ClInclude Include="obj_loader.h" />
+    <ClInclude Include="resource.h" />
     <ClInclude Include="Shader.h" />
     <ClInclude Include="SkyBox.h" />
     <ClInclude Include="stb_image.h" />
@@ -104,6 +105,8 @@
     <None Include="..\res\Glow.vert" />
     <None Include="..\res\noise.frag" />
     <None Include="..\res\noise.vert" />
+    <None Include="..\res\outline.frag" />
+    <None Include="..\res\outline.vert" />
     <None Include="..\res\shader.frag" />
     <None Include="..\res\shader.vert" />
     <None Include="..\res\shaderGeoText.frag" />
@@ -124,7 +127,11 @@
     </Object>
   </ItemGroup>
   <ItemGroup>
+    <Image Include="..\res\earth.jpg" />
     <Image Include="..\res\mc.jpg" />
+  </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="Lab1.rc" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

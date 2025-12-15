@@ -1,23 +1,17 @@
-#version 330 core
+#version 400
 
 layout (location = 0) in vec3 VertexPosition;
-layout (location = 1) in vec2 VertexTexCoord;
 layout (location = 2) in vec3 VertexNormal;
 
-out VS_OUT
-{
-    vec3 WorldPos;
-    vec2 TexCoord;
-} vs_out;
+out vec3 vObjPos;
+out vec3 vObjN;
 
-uniform mat4 transform;   // set from C++ via noiseShader.Update
+uniform mat4 transform; // MVP
 
 void main()
 {
-    vec4 worldPos = transform * vec4(VertexPosition, 1.0);
+    vObjPos = VertexPosition;          // OBJECT SPACE (camera-independent)
+    vObjN = normalize(VertexPosition);
 
-    vs_out.WorldPos = worldPos.xyz;
-    vs_out.TexCoord = VertexTexCoord;
-
-    gl_Position = worldPos;
+    gl_Position = transform * vec4(VertexPosition, 1.0);
 }

@@ -28,6 +28,7 @@ private:
 	void linkFogShader();
 	void linkToon();
 	void linkNoise();
+	void linkGlowBall();
 	void linkRimLighting();
 	void linkGeo();
 	void linkEmapping();
@@ -50,10 +51,12 @@ private:
 	Shader noiseShader;
 	Shader pass;
 	Shader glow;
+	Shader outlineShader;
 	Texture texture;
 	Texture texture1;
 	Texture texture2;
-	
+	Texture earthTex;
+
 	Skybox skybox;
 
 	vector<std::string> faces;
