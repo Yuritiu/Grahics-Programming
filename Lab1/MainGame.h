@@ -8,6 +8,7 @@
 #include "transform.h"
 #include "Audio.h"
 #include "SkyBox.h"
+#include <vector>
 
 enum class GameState{PLAY, EXIT};
 
@@ -26,12 +27,19 @@ private:
 	void gameLoop();
 	void drawGame();
 	void linkFogShader();
-	void linkToon();
-	void linkNoise();
 	void linkGlowBall();
+	void linkGlowBallCubemap(const Camera& cam);
 	void linkRimLighting();
-	void linkGeo();
-	void linkEmapping();
+	void linkToon(const Camera& cam);
+	void linkGeo(const Camera& cam);
+	void linkNoise(const Camera& cam);
+	void linkEmapping(const Camera& cam);
+	void linkEarthPlain(const Camera& cam);
+	void initCubeMesh();
+	void initDynamicCubemap();
+	void renderDynamicCubemap(const glm::vec3& cubePos);
+	void drawSceneForCubemap(const Camera& cam);
+	void drawReflectiveCube(const Camera& cam);
 	bool collision(glm::vec3 m1Pos, float m1Rad, glm::vec3 m2Pos, float m2Rad);
 
 	//void playAudio(unsigned int Source, glm::vec3 pos);
@@ -72,5 +80,16 @@ private:
 
 	float yaw = -90.0f;  // looking along -Z initially
 	float pitch = 0.0f;
+
+	GLuint dynCubeFBO = 0;
+	GLuint dynCubeDepthRBO = 0;
+	GLuint dynCubeTex = 0;
+	int dynCubeSize = 512;
+
+	GLuint cubeVAO = 0, cubeVBO = 0;
+	Shader reflectiveCubeShader;
+
+	glm::vec3 reflectiveCubePos = glm::vec3(0.0f, 0.0f, 7.5f);
+	glm::vec3 reflectiveCubeScale = glm::vec3(1.6f);
 };
 

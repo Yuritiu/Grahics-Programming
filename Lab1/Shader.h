@@ -14,7 +14,7 @@ public:
 	void Bind(); //Set gpu to use our shaders
 	void Update(const Transform& transform, const Camera& camera);
 	void init(const std::string& vertFile, const std::string& fragFile); 
-	void initGeo();
+	void initGeo(const std::string& vertFile, const std::string& geomFile, const std::string& fragFile);
 
 	GLuint getID() { return this->shaderID; }
 
@@ -157,7 +157,7 @@ public:
 
 protected:
 private:
-	static const unsigned int NUM_SHADERS = 2; // number of shaders
+	static const unsigned int NUM_SHADERS = 3; // number of shaders
 
 	enum
 	{

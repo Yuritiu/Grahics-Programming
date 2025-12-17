@@ -99,6 +99,8 @@
     <ClInclude Include="transform.h" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="..\res\envmap.frag" />
+    <None Include="..\res\envmap.vert" />
     <None Include="..\res\fogShader.frag" />
     <None Include="..\res\fogShader.vert" />
     <None Include="..\res\Glow.frag" />
@@ -107,6 +109,8 @@
     <None Include="..\res\noise.vert" />
     <None Include="..\res\outline.frag" />
     <None Include="..\res\outline.vert" />
+    <None Include="..\res\reflectCube.frag" />
+    <None Include="..\res\reflectCube.vert" />
     <None Include="..\res\shader.frag" />
     <None Include="..\res\shader.vert" />
     <None Include="..\res\shaderGeoText.frag" />

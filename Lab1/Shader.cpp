@@ -28,30 +28,33 @@ void Shader::init(const std::string& vertFile, const std::string& fragFile)
 	uniforms[TRANSFORM_U] = glGetUniformLocation(shaderID, "transform"); // associate with the location of uniform variable within a program
 }
 
-void Shader::initGeo()
+void Shader::initGeo(const std::string& vertFile, const std::string& geomFile, const std::string& fragFile)
 {
-	shaderID = glCreateProgram(); // create shader program (openGL saves as ref number)
-	shaders1[0] = CreateShader(LoadShader("..\\res\\shaderGeoText.vert"), GL_VERTEX_SHADER); // create vertex shader
-	shaders1[1] = CreateShader(LoadShader("..\\res\\shaderGeoText.geom"), GL_GEOMETRY_SHADER); // create fragment shader
-	shaders1[2] = CreateShader(LoadShader("..\\res\\shaderGeoText.frag"), GL_FRAGMENT_SHADER); // create fragment shader
+	shaderID = glCreateProgram();
 
+	shaders1[0] = CreateShader(LoadShader(vertFile), GL_VERTEX_SHADER);
+	shaders1[1] = CreateShader(LoadShader(geomFile), GL_GEOMETRY_SHADER);
+	shaders1[2] = CreateShader(LoadShader(fragFile), GL_FRAGMENT_SHADER);
 
-	for (unsigned int i = 0; i < 3; i++)
+	for (int i = 0; i < 3; i++)
 	{
-		glAttachShader(shaderID, shaders1[i]); //add all our shaders to the shader program "shaders" 
+		glAttachShader(shaderID, shaders1[i]);
 	}
 
-	glBindAttribLocation(shaderID, 0, "VertexPosition"); // associate attribute variable with our shader program attribute (in this case attribute vec3 position;)
+	glBindAttribLocation(shaderID, 0, "VertexPosition");
 	glBindAttribLocation(shaderID, 1, "VertexTexCoord");
 	glBindAttribLocation(shaderID, 2, "VertexNormal");
 
-	glLinkProgram(shaderID); //create executables that will run on the GPU shaders
-	CheckShaderError(shaderID, GL_LINK_STATUS, true, "Error: Shader program linking failed"); // cheack for error
+	glLinkProgram(shaderID);
+	CheckShaderError(shaderID, GL_LINK_STATUS, true,
+		"Error: Geometry shader program linking failed");
 
-	glValidateProgram(shaderID); //check the entire program is valid
-	CheckShaderError(shaderID, GL_VALIDATE_STATUS, true, "Error: Shader program not valid");
+	glValidateProgram(shaderID);
+	CheckShaderError(shaderID, GL_VALIDATE_STATUS, true,
+		"Error: Geometry shader program not valid");
 
-	uniforms[TRANSFORM_U] = glGetUniformLocation(shaderID, "transform"); // associate with the location of uniform variable within a program
+	uniforms[TRANSFORM_U] =
+		glGetUniformLocation(shaderID, "transform");
 }
 
 
@@ -59,12 +62,18 @@ void Shader::initGeo()
 
 Shader::~Shader()
 {
-	for (unsigned int i = 0; i < NUM_SHADERS; i++)
+	if (shaderID != 0)
 	{
-		glDetachShader(shaderID, shaders[i]); //detach shader from program
-		glDeleteShader(shaders[i]); //delete the sahders
+		for (int i = 0; i < 3; i++)
+		{
+			if (shaders1[i] != 0)
+			{
+				glDetachShader(shaderID, shaders1[i]);
+				glDeleteShader(shaders1[i]);
+			}
+		}
+		glDeleteProgram(shaderID);
 	}
-	glDeleteProgram(shaderID); // delete the program
 }
 
 void Shader::Bind()

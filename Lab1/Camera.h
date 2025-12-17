@@ -18,11 +18,6 @@ public:
 		this->projection = glm::perspective(fov, aspect, nearClip, farClip);
 	}
 
-	glm::vec3 getPos()
-	{
-		return this->pos;
-	}
-
 	void setLook(glm::vec3 modelPos)
 	{
 		forward = glm::vec3(glm::normalize(modelPos - pos));
@@ -81,6 +76,17 @@ public:
 
 		forward = glm::vec3(glm::normalize(rotation * glm::vec4(forward, 0.0)));
 		up = glm::vec3(glm::normalize(rotation * glm::vec4(up, 0.0)));
+	}
+
+	glm::vec3 getPos() const
+	{
+		return this->pos;
+	}
+
+
+	void setUp(const glm::vec3& u) 
+	{ 
+		up = glm::normalize(u); 
 	}
 
 protected:

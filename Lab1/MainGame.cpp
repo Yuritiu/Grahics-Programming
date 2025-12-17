@@ -9,18 +9,11 @@ Transform transform;
 MainGame::MainGame()
 {
 	_gameState = GameState::PLAY;
-	Display* _gameDisplay = new Display(); //new display
-	Shader fogShader();
-	Shader toonShader();
-	Shader rimShader();
-	Shader geoShader();
-	Texture texture(); //load texture
-	Texture texture1(); //load texture
-	//Audio* audioDevice();
 }
 
 MainGame::~MainGame()
 {
+
 }
 
 void MainGame::run()
@@ -31,7 +24,10 @@ void MainGame::run()
 
 void MainGame::initSystems()
 {
-	_gameDisplay.initDisplay(); 
+	_gameDisplay.initDisplay();
+
+	SDL_SetRelativeMouseMode(SDL_TRUE);
+	
 	//whistle = audioDevice.loadSound("..\\res\\bang.wav");
 	//backGroundMusic = audioDevice.loadSound("..\\res\\background.wav");
 	
@@ -42,8 +38,7 @@ void MainGame::initSystems()
 	toonShader.init("..\\res\\shaderToon.vert", "..\\res\\shaderToon.frag"); //new shader
 	rimShader.init("..\\res\\shaderRim.vert", "..\\res\\shaderRim.frag");
 	outlineShader.init("..\\res\\outline.vert", "..\\res\\outline.frag");
-	eMapping.init("..\\res\\shaderReflection.vert", "..\\res\\shaderReflection.frag");
-	eMapping.init("..\\res\\shaderReflection.vert", "..\\res\\shaderReflection.frag");
+	eMapping.init("..\\res\\envmap.vert", "..\\res\\envmap.frag");
 	noiseShader.init("..\\res\\noise.vert", "..\\res\\noise.frag"); //new shader
 	pass.init("..\\res\\shader.vert", "..\\res\\shader.frag");
 	texture.init("..\\res\\noise.png"); //load texture
@@ -51,7 +46,7 @@ void MainGame::initSystems()
 	texture2.init("..\\res\\Water.jpg"); //load texture
 	earthTex.init("..\\res\\earth.jpg");
 	glow.init("..\\res\\glow.vert", "..\\res\\glow.frag");
-	geoShader.initGeo();
+	geoShader.initGeo("..\\res\\shaderGeoText.vert", "..\\res\\shaderGeoText.geom", "..\\res\\shaderGeoText.frag");
 
 	myCamera.initCamera(glm::vec3(0, 0, -5), 70.0f, (float)_gameDisplay.getWidth()/_gameDisplay.getHeight(), 0.01f, 1000.0f);
 
@@ -68,6 +63,9 @@ void MainGame::initSystems()
 	};
 
 	skybox.init(faces);
+	reflectiveCubeShader.init("..\\res\\reflectCube.vert", "..\\res\\reflectCube.frag");
+	initCubeMesh();          // next step
+	initDynamicCubemap();
 }
 
 void MainGame::gameLoop()
@@ -184,7 +182,7 @@ void MainGame::linkFogShader()
 	fogShader.setVec3("fogColor", glm::vec3(0.0f, 0.0f, 0.0f));
 }
 
-void MainGame::linkToon()
+void MainGame::linkToon(const Camera& cam)
 {
 	glm::vec3 pos = glm::vec3(5.0f, 0.0f, 0.0f);
 	glm::vec3 rot = glm::vec3(0.0f, 0.0f, 0.0f);
@@ -198,7 +196,7 @@ void MainGame::linkToon()
 	transform.SetRot(rot);
 	transform.SetScale(scale);
 
-	toonShader.Update(transform, myCamera);
+	toonShader.Update(transform, cam);
 	mesh2.draw();
 
 	// ===== Pass 2: outline =====
@@ -213,7 +211,7 @@ void MainGame::linkToon()
 	transform.SetRot(rot);
 	transform.SetScale(scale * 1.05f);  // slightly bigger than pass 1
 
-	outlineShader.Update(transform, myCamera);
+	outlineShader.Update(transform, cam);
 	mesh2.draw();
 
 	// Restore default culling
@@ -222,7 +220,7 @@ void MainGame::linkToon()
 }
 
 
-void MainGame::linkGeo()
+void MainGame::linkGeo(const Camera& cam)
 {
 	geoShader.Bind();
 
@@ -239,7 +237,7 @@ void MainGame::linkGeo()
 	transform.SetRot(glm::vec3(0.0f, counter * 0.5f, 0.0f));
 	transform.SetScale(glm::vec3(0.01f));
 
-	geoShader.Update(transform, myCamera);
+	geoShader.Update(transform, cam);
 
 	// bind texture for skull
 	GLint loc = glGetUniformLocation(geoShader.getID(), "diffuse");
@@ -250,28 +248,14 @@ void MainGame::linkGeo()
 	mesh3.draw();
 }
 
-
-
-void MainGame::linkRimLighting()
-{
-	glm::vec3 camDir;
-	camDir = mesh2.getSpherePos() - myCamera.getPos();
-	camDir = glm::normalize(camDir);
-	rimShader.setMat4("u_pm", myCamera.getProjection());
-	rimShader.setMat4("u_vm", myCamera.getView());
-	rimShader.setMat4("model", transform.GetModel());
-	rimShader.setMat4("view", myCamera.getView());
-	rimShader.setVec3("lightDir", glm::vec3(0.5f, 0.5f, 0.5f));
-}
-
-void MainGame::linkEmapping()
+void MainGame::linkEmapping(const Camera& cam)
 {
 	glEnable(GL_BLEND);
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
 	eMapping.Bind();
 
-	// Orbit parameters
+	// ---- Orbit parameters (RESTORE THIS) ----
 	float radius = 3.0f;
 	float orbitSpeed = 1.0f;
 	float orbitAngle = counter * orbitSpeed;
@@ -279,29 +263,58 @@ void MainGame::linkEmapping()
 	float x = radius * cos(orbitAngle);
 	float z = radius * sin(orbitAngle);
 
-	// rotation of the ball itself
 	float spinSpeed = 3.0f;
 	float spinAngle = counter * spinSpeed;
 
 	transform.SetPos(glm::vec3(x, 0.0f, z));
-	transform.SetRot(glm::vec3(0.0f, spinAngle, 180.0f));   // spin around Y
-	transform.SetScale(glm::vec3(0.6f));
+	transform.SetRot(glm::vec3(0.0f, spinAngle, 180.0f));
+	transform.SetScale(glm::vec3(0.6f));   // KEEP your old ball size
 
-	eMapping.setVec3("cameraPos", myCamera.getPos());
+	// ---- Envmap uniforms ----
+	eMapping.setVec3("cameraPos", cam.getPos());
+	eMapping.setMat4("model", transform.GetModel());
+	eMapping.setMat4("view", cam.getView());
+	eMapping.setMat4("projection", cam.getProjection());
+	eMapping.setFloat("reflectStrength", 0.6f); // 1.0 is very shiny
 
-	// Bind Earth texture
-	GLint t1L = glGetUniformLocation(eMapping.getID(), "diffuse");
+	// Earth texture (diffuse) -> unit 0
 	glActiveTexture(GL_TEXTURE0);
 	glBindTexture(GL_TEXTURE_2D, earthTex.getID());
-	glUniform1i(t1L, 0);
+	glUniform1i(glGetUniformLocation(eMapping.getID(), "diffuse"), 0);
 
-	// Upload MVP etc.
-	eMapping.Update(transform, myCamera);
+	// Cubemap -> unit 2
+	glActiveTexture(GL_TEXTURE2);
+	glBindTexture(GL_TEXTURE_CUBE_MAP, skybox.textureID);
+	glUniform1i(glGetUniformLocation(eMapping.getID(), "skybox"), 2);
 
 	mesh1.draw();
 }
 
-void MainGame::linkNoise()
+void MainGame::linkEarthPlain(const Camera& cam)
+{
+	pass.Bind();
+
+	// same orbit transform as linkEmapping
+	float radius = 3.0f;
+	float orbitAngle = counter * 1.0f;
+	float x = radius * cos(orbitAngle);
+	float z = radius * sin(orbitAngle);
+	float spinAngle = counter * 3.0f;
+
+	transform.SetPos(glm::vec3(x, 0.0f, z));
+	transform.SetRot(glm::vec3(0.0f, spinAngle, 180.0f));
+	transform.SetScale(glm::vec3(0.6f));
+
+	pass.Update(transform, cam);
+
+	glActiveTexture(GL_TEXTURE0);
+	glBindTexture(GL_TEXTURE_2D, earthTex.getID());
+	glUniform1i(glGetUniformLocation(pass.getID(), "diffuse"), 0);
+
+	mesh1.draw();
+}
+
+void MainGame::linkNoise(const Camera& cam)
 {
 	glDisable(GL_BLEND);
 	glEnable(GL_DEPTH_TEST);
@@ -324,86 +337,284 @@ void MainGame::linkNoise()
 	transform.SetRot(glm::vec3(0.0f, 10.0f, 0.0f));
 	transform.SetScale(glm::vec3(1.2f));
 
-	noiseShader.Update(transform, myCamera);
+	noiseShader.Update(transform, cam);
 	mesh1.draw();
 }
 
 void MainGame::linkGlowBall()
 {
-	glDisable(GL_CULL_FACE);
-
 	glEnable(GL_BLEND);
-	glBlendFunc(GL_SRC_ALPHA, GL_ONE);
+	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+
+	glEnable(GL_DEPTH_TEST);
+	glDepthMask(GL_FALSE); // don't write depth
+
+	glEnable(GL_CULL_FACE);
+	glCullFace(GL_FRONT); // draw backfaces of the shell
+
+	glow.Bind();
+
+	// glow look
+	glow.setFloat("rimStart", 0.20f);
+	glow.setFloat("rimEnd", 0.95f);
+	glow.setFloat("glowPower", 1.0f);
+	glow.setFloat("glowStrength", 0.8f);
+
+	glow.setVec3("glowInnerColor", glm::vec3(1.0f, 0.55f, 0.10f));
+	glow.setVec3("glowOuterColor", glm::vec3(1.0f, 0.10f, 0.02f));
+
+	float planetScale = 1.2f;
+	glm::vec3 ballPos = glm::vec3(0.0f, 0.0f, 0.0f);
+
+	transform.SetPos(ballPos);
+	transform.SetRot(glm::vec3(0.0f, 10.0f, 0.0f));
+	transform.SetScale(glm::vec3(planetScale * 1.15f));
+
+	glow.setMat4("model", transform.GetModel());
+
+	glow.setVec3("cameraPos", myCamera.getPos());
+	glow.setMat4("model", transform.GetModel());
+	glow.Update(transform, myCamera);
+	mesh1.draw();
+
+	// restore
+	glCullFace(GL_BACK);
+	glDisable(GL_CULL_FACE);
+	glDepthMask(GL_TRUE);
+	glDisable(GL_BLEND);
+}
+
+void MainGame::linkGlowBallCubemap(const Camera& cam)
+{
+	glEnable(GL_BLEND);
+	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
 	glEnable(GL_DEPTH_TEST);
 	glDepthMask(GL_FALSE);
 
+	glDisable(GL_CULL_FACE);   // IMPORTANT for cubemap
 
 	glow.Bind();
 
-	// Use the SAME transform as the lava sphere, but slightly larger
+	glow.setFloat("rimStart", 0.20f);
+	glow.setFloat("rimEnd", 0.95f);
+	glow.setFloat("glowPower", 1.0f);
+	glow.setFloat("glowStrength", 0.8f);
+
+	glow.setVec3("glowInnerColor", glm::vec3(1.0f, 0.55f, 0.10f));
+	glow.setVec3("glowOuterColor", glm::vec3(1.0f, 0.10f, 0.02f));
+
 	transform.SetPos(glm::vec3(0.0f));
 	transform.SetRot(glm::vec3(0.0f, 10.0f, 0.0f));
-	transform.SetScale(glm::vec3(1.2f * 1.03f));
+	transform.SetScale(glm::vec3(1.2f * 1.15f));
 
-	glow.setVec3("glowColor", glm::vec3(1.0f, 0.35f, 0.15f)); // orange-red
-	glow.setFloat("glowPower", 3.0f);                         // higher = thinner rim
-	glow.setFloat("glowStrength", 0.8f);                      // alpha strength
-
-	glow.Update(transform, myCamera);
+	glow.setVec3("cameraPos", cam.getPos());
+	glow.setMat4("model", transform.GetModel());
+	glow.Update(transform, cam);
 	mesh1.draw();
 
-	// Restore defaults
+
 	glDepthMask(GL_TRUE);
 	glDisable(GL_BLEND);
+}
 
-	glCullFace(GL_BACK);
-	glDisable(GL_CULL_FACE);
+void MainGame::initDynamicCubemap()
+{
+	// Cubemap texture
+	glGenTextures(1, &dynCubeTex);
+	glBindTexture(GL_TEXTURE_CUBE_MAP, dynCubeTex);
+
+	for (int i = 0; i < 6; i++)
+	{
+		glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, 0, GL_RGBA16F,
+			dynCubeSize, dynCubeSize, 0, GL_RGBA, GL_FLOAT, nullptr);
+	}
+
+	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
+
+	// FBO + depth
+	glGenFramebuffers(1, &dynCubeFBO);
+	glBindFramebuffer(GL_FRAMEBUFFER, dynCubeFBO);
+
+	glGenRenderbuffers(1, &dynCubeDepthRBO);
+	glBindRenderbuffer(GL_RENDERBUFFER, dynCubeDepthRBO);
+	glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT24, dynCubeSize, dynCubeSize);
+	glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, dynCubeDepthRBO);
+
+	// (color attachment set per-face during rendering)
+	glBindFramebuffer(GL_FRAMEBUFFER, 0);
+}
+
+void MainGame::initCubeMesh()
+{
+	// position (x,y,z), normal (x,y,z)
+	float verts[] = {
+		// +Z
+		-1,-1, 1,  0,0,1,   1,-1, 1,  0,0,1,   1, 1, 1,  0,0,1,
+		-1,-1, 1,  0,0,1,   1, 1, 1,  0,0,1,  -1, 1, 1,  0,0,1,
+		// -Z
+		-1,-1,-1,  0,0,-1, -1, 1,-1,  0,0,-1,  1, 1,-1,  0,0,-1,
+		-1,-1,-1,  0,0,-1,  1, 1,-1,  0,0,-1,  1,-1,-1,  0,0,-1,
+		// +X
+		 1,-1,-1,  1,0,0,   1, 1,-1,  1,0,0,   1, 1, 1,  1,0,0,
+		 1,-1,-1,  1,0,0,   1, 1, 1,  1,0,0,   1,-1, 1,  1,0,0,
+		 // -X
+		 -1,-1,-1, -1,0,0,  -1,-1, 1, -1,0,0,  -1, 1, 1, -1,0,0,
+		 -1,-1,-1, -1,0,0,  -1, 1, 1, -1,0,0,  -1, 1,-1, -1,0,0,
+		 // +Y
+		 -1, 1,-1,  0,1,0,  -1, 1, 1,  0,1,0,   1, 1, 1,  0,1,0,
+		 -1, 1,-1,  0,1,0,   1, 1, 1,  0,1,0,   1, 1,-1,  0,1,0,
+		 // -Y
+		 -1,-1,-1,  0,-1,0,  1,-1,-1,  0,-1,0,  1,-1, 1,  0,-1,0,
+		 -1,-1,-1,  0,-1,0,  1,-1, 1,  0,-1,0, -1,-1, 1,  0,-1,0,
+	};
+
+	glGenVertexArrays(1, &cubeVAO);
+	glGenBuffers(1, &cubeVBO);
+
+	glBindVertexArray(cubeVAO);
+	glBindBuffer(GL_ARRAY_BUFFER, cubeVBO);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(verts), verts, GL_STATIC_DRAW);
+
+	glEnableVertexAttribArray(0); // pos
+	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)0);
+
+	glEnableVertexAttribArray(2); // normal (use location 2 to match your shaders)
+	glVertexAttribPointer(2, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)(3 * sizeof(float)));
+
+	glBindVertexArray(0);
+}
+
+void MainGame::renderDynamicCubemap(const glm::vec3& cubePos)
+{
+	if (dynCubeFBO == 0 || dynCubeTex == 0)
+		return;
+
+	glm::mat4 proj = glm::perspective(glm::radians(90.0f), 1.0f, 0.1f, 1000.0f);
+
+	struct Face { glm::vec3 dir; glm::vec3 up; };
+	Face faces[6] = {
+		{ { 1, 0, 0}, {0,-1, 0} }, // +X
+		{ {-1, 0, 0}, {0,-1, 0} }, // -X
+		{ { 0, 1, 0}, {0, 0, 1} }, // +Y
+		{ { 0,-1, 0}, {0, 0,-1} }, // -Y
+		{ { 0, 0, 1}, {0,-1, 0} }, // +Z
+		{ { 0, 0,-1}, {0,-1, 0} }, // -Z
+	};
+
+	glBindFramebuffer(GL_FRAMEBUFFER, dynCubeFBO);
+	glViewport(0, 0, dynCubeSize, dynCubeSize);
+
+	for (int i = 0; i < 6; i++)
+	{
+		glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0,
+			GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, dynCubeTex, 0);
+
+		glClearColor(0, 0, 0, 1);
+		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+		// Build a temp camera for this face
+		Camera cubeCam;
+		cubeCam.initCamera(cubePos, 90.0f, 1.0f, 0.1f, 1000.0f);
+		cubeCam.setForward(faces[i].dir);
+		cubeCam.setUp(faces[i].up);
+
+		// Draw the scene FROM cubeCam, but DO NOT draw the reflective cube itself
+		drawSceneForCubemap(cubeCam); // implement next
+	}
+
+	glBindTexture(GL_TEXTURE_CUBE_MAP, dynCubeTex);
+	//glGenerateMipmap(GL_TEXTURE_CUBE_MAP);
+
+	glBindFramebuffer(GL_FRAMEBUFFER, 0);
+	glViewport(0, 0, (int)_gameDisplay.getWidth(), (int)_gameDisplay.getHeight());
+}
+
+void MainGame::drawSceneForCubemap(const Camera& cam)
+{
+	// Draw skybox into the cubemap so reflections have something to show
+	glDepthMask(GL_FALSE);
+	glDepthFunc(GL_LEQUAL);
+
+	glActiveTexture(GL_TEXTURE2);
+	glBindTexture(GL_TEXTURE_CUBE_MAP, skybox.textureID);
+	skybox.draw((Camera*)&cam);   // your skybox.draw takes Camera*, so cast is OK here
+
+	glDepthFunc(GL_LESS);
+	glDepthMask(GL_TRUE);
+
+	// Now draw scene objects (but NOT the reflective cube and NOT env-mapped sphere)
+	linkEarthPlain(cam);
+	linkToon(cam);
+	linkGeo(cam);
+	linkNoise(cam);
+
+	linkGlowBallCubemap(cam);
+}
+
+void MainGame::drawReflectiveCube(const Camera& cam)
+{
+	reflectiveCubeShader.Bind();
+
+	Transform t;
+	t.SetPos(reflectiveCubePos);
+	t.SetRot(glm::vec3(0));
+	t.SetScale(reflectiveCubeScale);
+
+	reflectiveCubeShader.setMat4("model", t.GetModel());
+	reflectiveCubeShader.setMat4("view", cam.getView());
+	reflectiveCubeShader.setMat4("projection", cam.getProjection());
+	reflectiveCubeShader.setVec3("cameraPos", cam.getPos());
+	reflectiveCubeShader.setFloat("reflectStrength", 1.0f);
+
+	glActiveTexture(GL_TEXTURE0);
+	glBindTexture(GL_TEXTURE_CUBE_MAP, dynCubeTex);
+	glUniform1i(glGetUniformLocation(reflectiveCubeShader.getID(), "dynamicCube"), 0);
+
+	glBindVertexArray(cubeVAO);
+	glDrawArrays(GL_TRIANGLES, 0, 36);
+	glBindVertexArray(0);
 }
 
 void MainGame::drawGame()
 {
-	_gameDisplay.clearDisplay(0.8f, 0.8f, 0.8f, 1.0f); //sets our background colour
+	// ---- left & right motion for reflective cube ----
+	float minX = -5.0f;
+	float maxX = 5.0f;
+	float moveSpeed = 0.6f;
 
+	// sin(counter * speed) gives -1..1
+	float t = sin(counter * moveSpeed);
+
+	// remap -1..1  minX..maxX
+	float x = (maxX - minX) * (t * 0.5f + 0.5f) + minX;
+
+	// keep Y and Z fixed
+	reflectiveCubePos = glm::vec3(x, 0.0f, 7.5f);
+
+	renderDynamicCubemap(reflectiveCubePos);
+
+	glBindFramebuffer(GL_FRAMEBUFFER, 0);
+
+	_gameDisplay.clearDisplay(0.8f, 0.8f, 0.8f, 1.0f);
 
 	glActiveTexture(GL_TEXTURE2);
 	glBindTexture(GL_TEXTURE_CUBE_MAP, skybox.textureID);
 	skybox.draw(&myCamera);
-	linkEmapping();
-	//linkFogShader();
-	linkToon();
-	linkGeo(); // exploding skull (mesh3)
-	//linkRimLighting();
-	linkNoise();
-	linkGlowBall();   
 
-	//myCamera.MoveRight(0.0001);
-	//myCamera.setLook(mesh1.getSpherePos());
-
-	//GLuint t1L = glGetUniformLocation(pass.getID(), "diffuse"); //texture 1 location
-	//GLuint t2L = glGetUniformLocation(pass.getID(), "diffuse1");
-
-	////set textures
-	//glActiveTexture(GL_TEXTURE0); //set acitve texture unit
-	//glBindTexture(GL_TEXTURE_2D, texture.getID());
-	//glUniform1i(t1L, 0);
-
-	//glActiveTexture(GL_TEXTURE1); //set acitve texture unit
-	//glBindTexture(GL_TEXTURE_2D, texture1.getID());
-	//glUniform1i(t2L, 1);
-
-	//mesh1.updateSphereData(*transform.GetPos(), 0.62f);
-		
-	counter = counter + 0.01f;
-	//cout << sinf(counter) << '\n';
-
-	
-
-	glEnableClientState(GL_COLOR_ARRAY); 
-	glEnd();
+	linkEmapping(myCamera);
+	linkToon(myCamera);
+	linkGeo(myCamera);
+	linkNoise(myCamera);
+	drawReflectiveCube(myCamera);
+	linkGlowBall();
 
 
-	_gameDisplay.swapBuffer();	
-	
+	counter += 0.01f;
 
-} 
+	_gameDisplay.swapBuffer();
+}

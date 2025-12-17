@@ -148,6 +148,18 @@
     <None Include="..\res\outline.vert">
       <Filter>Resource Files</Filter>
     </None>
+    <None Include="..\res\envmap.frag">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="..\res\envmap.vert">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="..\res\reflectCube.frag">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="..\res\reflectCube.vert">
+      <Filter>Resource Files</Filter>
+    </None>
   </ItemGroup>
   <ItemGroup>
     <Object Include="..\res\monkey3.obj">

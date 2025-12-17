@@ -1,17 +1,18 @@
-#version 400
+#version 330 core
+layout(location=0) in vec3 position;
+layout(location=2) in vec3 normal;
 
-layout (location = 0) in vec3 VertexPosition;
-layout (location = 2) in vec3 VertexNormal;
+uniform mat4 transform;   // MVP (your Shader::Update sets this)
+uniform mat4 model;
 
-out vec3 vN;
-out vec3 vPos;
-
-uniform mat4 transform;
+out vec3 WorldPos;
+out vec3 WorldNormal;
 
 void main()
 {
-    vPos = VertexPosition;             // object-space
-    vN   = normalize(VertexNormal);
+    vec4 wp = model * vec4(position, 1.0);
+    WorldPos = wp.xyz;
+    WorldNormal = mat3(transpose(inverse(model))) * normal;
 
-    gl_Position = transform * vec4(VertexPosition, 1.0);
+    gl_Position = transform * vec4(position, 1.0);
 }

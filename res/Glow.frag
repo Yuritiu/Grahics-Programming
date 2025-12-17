@@ -1,24 +1,29 @@
-#version 400
+#version 330 core
+in vec3 WorldPos;
+in vec3 WorldNormal;
 
-in vec3 vN;
-in vec3 vPos;
+out vec4 FragColor;
 
-out vec4 FragColour;
+uniform vec3  cameraPos;
 
-uniform vec3 glowColor;     // set from C++
-uniform float glowPower;    // set from C++
-uniform float glowStrength; // set from C++
+uniform vec3  glowInnerColor;
+uniform vec3  glowOuterColor;
+uniform float glowStrength;
+uniform float glowPower;
+uniform float rimStart;   // e.g. 0.2
+uniform float rimEnd;     // e.g. 0.95
 
 void main()
 {
-    // Camera is effectively at origin in object space is not true,
-    // but for a simple rim outline pass this works well enough visually.
-    // If you want it physically correct, we can pass cameraPos + worldPos.
-    vec3 N = normalize(vN);
-    vec3 V = normalize(-vPos);
+    vec3 N = normalize(WorldNormal);
+    vec3 V = normalize(cameraPos - WorldPos);
 
-    float rim = 1.0 - max(dot(N, V), 0.0);
-    rim = pow(rim, glowPower);
+    float rim = 1.0 - clamp(dot(N, V), 0.0, 1.0);
+    float soft = smoothstep(rimStart, rimEnd, rim);
+    soft = pow(soft, glowPower);
 
-    FragColour = vec4(glowColor, rim * glowStrength);
+    vec3 col = mix(glowOuterColor, glowInnerColor, soft);
+    float a = soft * glowStrength;
+
+    FragColor = vec4(col * a, a);
 }
