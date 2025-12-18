@@ -14,10 +14,9 @@ uniform mat4 transform;
 
 void main()
 {
-    vs_out.Position = VertexPosition;        // object space
+    vs_out.Position = VertexPosition; // object space
     vs_out.Normal   = normalize(VertexNormal);
     vs_out.TexCoord = VertexTexCoord;
 
-    // still write gl_Position so the VS compiles cleanly
     gl_Position = transform * vec4(VertexPosition, 1.0);
 }

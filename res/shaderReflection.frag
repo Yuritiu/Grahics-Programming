@@ -1,6 +1,7 @@
 #version 400 core
 
-in VS_OUT {
+in VS_OUT 
+{
     vec2 TexCoords;
     vec3 WorldPos;
     vec3 Normal;
@@ -16,7 +17,6 @@ void main()
     // Base texture (Earth)
     vec3 base = texture(diffuse, fs_in.TexCoords).rgb;
 
-    // Tiny “shine” so it still feels like your env-mapping lab
     vec3 N = normalize(fs_in.Normal);
     vec3 V = normalize(cameraPos - fs_in.WorldPos);
     float fresnel = pow(1.0 - max(dot(N, V), 0.0), 3.0);

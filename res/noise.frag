@@ -20,9 +20,9 @@ vec3 triplanar(sampler2D tex, vec3 pos, vec3 n, float scale)
     vec3 w = abs(n);
     w = w / (w.x + w.y + w.z + 1e-6);
 
-    vec2 uvX = pos.zy * scale;   // projection for faces pointing ±X
-    vec2 uvY = pos.xz * scale;   // projection for faces pointing ±Y
-    vec2 uvZ = pos.xy * scale;   // projection for faces pointing ±Z
+    vec2 uvX = pos.zy * scale; // projection for faces pointing X
+    vec2 uvY = pos.xz * scale; // projection for faces pointing Y
+    vec2 uvZ = pos.xy * scale; // projection for faces pointing Z
 
     // Rotate two projections so all three “flow” similarly
     uvY = rot90(uvY);
@@ -39,7 +39,7 @@ void main()
 {
     vec3 base = triplanar(texture2, vObjPos, normalize(vObjN), 0.08);
 
-    // Depth-based fog (stable, doesn’t require world pos)
+    // Depth-based fog 
     float d = clamp(gl_FragCoord.z, 0.0, 1.0);
 
     float fogFactor = clamp((maxDist - d) / (maxDist - minDist), 0.0, 1.0);

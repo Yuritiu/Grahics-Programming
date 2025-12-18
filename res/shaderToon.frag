@@ -9,11 +9,11 @@ in VS_OUT
 
 out vec4 FragColor;
 
-uniform vec3 lightDir;   // set from C++
+uniform vec3 lightDir;
 
 void main()
 {
-    // ---- Toon lighting ----
+    // Toon lighting
     vec3 N = normalize(fs_in.Normal);
     vec3 L = normalize(lightDir);
 
@@ -22,7 +22,7 @@ void main()
     float quantised = floor(intensity * levels) / levels;
     float toonLight = 0.3 + 0.7 * quantised;
 
-    // ---- Base colours ----
+    // Base colours 
     vec3 skinColor      = vec3(0.45, 0.30, 0.20); // brown
     vec3 eyeWhite       = vec3(0.96, 0.96, 0.96);
     vec3 eyeLeftColour  = vec3(0.2, 0.7, 1.0);    // blue
@@ -30,7 +30,7 @@ void main()
 
     vec3 color = skinColor;
 
-    // ---- Eye regions as spheres in object space ----
+    // Eye regions as spheres in object space
     vec3 p = fs_in.ObjPos;
 
     // Approximate eye centres for standard Suzanne (object space)

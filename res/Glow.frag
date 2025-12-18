@@ -10,8 +10,8 @@ uniform vec3  glowInnerColor;
 uniform vec3  glowOuterColor;
 uniform float glowStrength;
 uniform float glowPower;
-uniform float rimStart;   // e.g. 0.2
-uniform float rimEnd;     // e.g. 0.95
+uniform float rimStart;
+uniform float rimEnd;
 
 void main()
 {

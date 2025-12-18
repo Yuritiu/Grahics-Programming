@@ -3,16 +3,16 @@
   "WorkspaceRootPath": "B:\\GCU work\\Year 4\\Graphics Programming\\Grahics-Programming-CW\\",
   "Documents": [
     {
+      "AbsoluteMoniker": "D:0:0:{D246FDDF-B30E-4F14-80F8-095FA4E04ECF}|Lab1\\Lab1.vcxproj|B:\\GCU work\\Year 4\\Graphics Programming\\Grahics-Programming-CW\\Lab1\\Shader.cpp||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}",
+      "RelativeMoniker": "D:0:0:{D246FDDF-B30E-4F14-80F8-095FA4E04ECF}|Lab1\\Lab1.vcxproj|solutionrelative:Lab1\\Shader.cpp||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}"
+    },
+    {
       "AbsoluteMoniker": "D:0:0:{D246FDDF-B30E-4F14-80F8-095FA4E04ECF}|Lab1\\Lab1.vcxproj|B:\\GCU work\\Year 4\\Graphics Programming\\Grahics-Programming-CW\\Lab1\\Shader.h||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}",
       "RelativeMoniker": "D:0:0:{D246FDDF-B30E-4F14-80F8-095FA4E04ECF}|Lab1\\Lab1.vcxproj|solutionrelative:Lab1\\Shader.h||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}"
     },
     {
       "AbsoluteMoniker": "D:0:0:{D246FDDF-B30E-4F14-80F8-095FA4E04ECF}|Lab1\\Lab1.vcxproj|B:\\GCU work\\Year 4\\Graphics Programming\\Grahics-Programming-CW\\Lab1\\MainGame.cpp||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}",
       "RelativeMoniker": "D:0:0:{D246FDDF-B30E-4F14-80F8-095FA4E04ECF}|Lab1\\Lab1.vcxproj|solutionrelative:Lab1\\MainGame.cpp||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}"
-    },
-    {
-      "AbsoluteMoniker": "D:0:0:{D246FDDF-B30E-4F14-80F8-095FA4E04ECF}|Lab1\\Lab1.vcxproj|B:\\GCU work\\Year 4\\Graphics Programming\\Grahics-Programming-CW\\Lab1\\Shader.cpp||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}",
-      "RelativeMoniker": "D:0:0:{D246FDDF-B30E-4F14-80F8-095FA4E04ECF}|Lab1\\Lab1.vcxproj|solutionrelative:Lab1\\Shader.cpp||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}"
     },
     {
       "AbsoluteMoniker": "D:0:0:{D246FDDF-B30E-4F14-80F8-095FA4E04ECF}|Lab1\\Lab1.vcxproj|B:\\GCU work\\Year 4\\Graphics Programming\\Grahics-Programming-CW\\Lab1\\MainGame.h||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}",
@@ -110,11 +110,11 @@
       "DocumentGroups": [
         {
           "DockedWidth": 200,
-          "SelectedChildIndex": 13,
+          "SelectedChildIndex": 10,
           "Children": [
             {
               "$type": "Document",
-              "DocumentIndex": 1,
+              "DocumentIndex": 2,
               "Title": "MainGame.cpp",
               "DocumentMoniker": "B:\\GCU work\\Year 4\\Graphics Programming\\Grahics-Programming-CW\\Lab1\\MainGame.cpp",
               "RelativeDocumentMoniker": "Lab1\\MainGame.cpp",
@@ -123,8 +123,7 @@
               "ViewState": "AgIAABgAAAAAAAAAAAAAADEAAAAAAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000677|",
               "WhenOpened": "2024-11-21T23:19:32.811Z",
-              "IsPinned": true,
-              "EditorCaption": ""
+              "IsPinned": true
             },
             {
               "$type": "Document",
@@ -137,8 +136,7 @@
               "ViewState": "AgIAADYAAAAAAAAAAAAAAB0AAAATAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000680|",
               "WhenOpened": "2025-12-10T23:22:53.425Z",
-              "IsPinned": true,
-              "EditorCaption": ""
+              "IsPinned": true
             },
             {
               "$type": "Document",
@@ -238,13 +236,13 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 2,
+              "DocumentIndex": 0,
               "Title": "Shader.cpp",
               "DocumentMoniker": "B:\\GCU work\\Year 4\\Graphics Programming\\Grahics-Programming-CW\\Lab1\\Shader.cpp",
               "RelativeDocumentMoniker": "Lab1\\Shader.cpp",
               "ToolTip": "B:\\GCU work\\Year 4\\Graphics Programming\\Grahics-Programming-CW\\Lab1\\Shader.cpp",
               "RelativeToolTip": "Lab1\\Shader.cpp",
-              "ViewState": "AgIAABUAAAAAAAAAAAAAAB4AAAAyAAAAAAAAAA==",
+              "ViewState": "AgIAADMAAAAAAAAAAAAAAEwAAAABAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000677|",
               "WhenOpened": "2025-12-10T23:47:26.652Z",
               "EditorCaption": ""
@@ -259,8 +257,7 @@
               "RelativeToolTip": "res\\Glow.vert",
               "ViewState": "AgIAAAAAAAAAAAAAAAAAABIAAAAAAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.001001|",
-              "WhenOpened": "2025-12-15T08:29:31.422Z",
-              "EditorCaption": ""
+              "WhenOpened": "2025-12-15T08:29:31.422Z"
             },
             {
               "$type": "Document",
@@ -272,12 +269,11 @@
               "RelativeToolTip": "res\\Glow.frag",
               "ViewState": "AgIAAAAAAAAAAAAAAAAAAB0AAAAAAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.001001|",
-              "WhenOpened": "2025-12-15T02:08:21.755Z",
-              "EditorCaption": ""
+              "WhenOpened": "2025-12-15T02:08:21.755Z"
             },
             {
               "$type": "Document",
-              "DocumentIndex": 0,
+              "DocumentIndex": 1,
               "Title": "Shader.h",
               "DocumentMoniker": "B:\\GCU work\\Year 4\\Graphics Programming\\Grahics-Programming-CW\\Lab1\\Shader.h",
               "RelativeDocumentMoniker": "Lab1\\Shader.h",
@@ -285,8 +281,7 @@
               "RelativeToolTip": "Lab1\\Shader.h",
               "ViewState": "AgIAAJkAAAAAAAAAAAAAAJ8AAAAqAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000680|",
-              "WhenOpened": "2025-12-09T22:40:52.802Z",
-              "EditorCaption": ""
+              "WhenOpened": "2025-12-09T22:40:52.802Z"
             },
             {
               "$type": "Document",

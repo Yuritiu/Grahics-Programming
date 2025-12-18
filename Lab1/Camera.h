@@ -20,6 +20,7 @@ public:
 
 	void setLook(glm::vec3 modelPos)
 	{
+		// aim camera at a target position
 		forward = glm::vec3(glm::normalize(modelPos - pos));
 	}
 
@@ -62,6 +63,7 @@ public:
 
 	void Pitch(float angle)
 	{
+		// rotate camera up/down around right axis
 		glm::vec3 right = glm::normalize(glm::cross(up, forward));
 
 		forward = glm::vec3(glm::normalize(glm::rotate(angle, right) * glm::vec4(forward, 0.0)));
@@ -70,6 +72,7 @@ public:
 
 	void RotateY(float angle)
 	{
+		// rotate camera left/right around world up axis
 		static const glm::vec3 UP(0.0f, 1.0f, 0.0f);
 
 		glm::mat4 rotation = glm::rotate(angle, UP);

@@ -10,8 +10,8 @@ out VS_OUT {
     vec3 Normal;
 } vs_out;
 
-uniform mat4 transform; // MVP from Update()
-uniform mat4 model;     // model matrix from C++
+uniform mat4 transform; 
+uniform mat4 model;
 
 void main()
 {

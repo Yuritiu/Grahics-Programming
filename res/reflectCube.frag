@@ -6,7 +6,7 @@ out vec4 FragColor;
 
 uniform vec3 cameraPos;
 uniform samplerCube dynamicCube;
-uniform float reflectStrength; // 0..1
+uniform float reflectStrength;
 
 void main()
 {
@@ -16,6 +16,6 @@ void main()
 
     vec3 env = textureLod(dynamicCube, R, 0.0).rgb;
 
-    // mirror-ish
+    // mirror like appearance
     FragColor = vec4(env * reflectStrength, 1.0);
 }

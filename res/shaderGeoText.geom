@@ -3,7 +3,8 @@
 layout (triangles) in;
 layout (triangle_strip, max_vertices = 3) out;
 
-in VS_OUT {
+in VS_OUT
+{
     vec3 Position;
     vec3 Normal;
     vec2 TexCoord;
@@ -17,8 +18,8 @@ uniform float time;
 
 vec3 explode(vec3 pos, vec3 normal)
 {
-    float strength  = sin(time) * 0.5 + 0.5;   // 0..1
-    float magnitude = 25.0;                    // increase if you want more
+    float strength  = sin(time) * 0.5 + 0.5;
+    float magnitude = 25.0;
     return pos + normal * strength * magnitude;
 }
 
