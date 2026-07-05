@@ -1,7 +1,3 @@
 ﻿C:\Program Files\Microsoft Visual Studio\2022\Community\MSBuild\Microsoft\VC\v170\Microsoft.CppBuild.targets(534,5): warning MSB8028: The intermediate directory (Debug\) contains files shared from another project (Lab2.vcxproj).  This can lead to incorrect clean and rebuild behavior.
   MainGame.cpp
-  Shader.cpp
-  SkyBox.cpp
-  main.cpp
-  Generating Code...
   Lab1.vcxproj -> B:\GCU work\Year 4\Graphics Programming\Grahics-Programming-CW\Debug\Lab1.exe
