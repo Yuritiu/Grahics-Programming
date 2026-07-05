@@ -1,3 +1,8 @@
 # Auto detect text files and perform LF normalization
 * text=auto
-*.rb linguist-language=C++
+* linguist-vendored
+*.sln linguist-vendored=false
+*.cpp linguist-vendored=false
+*.h linguist-vendored=false
+*.vert linguist-vendored=false
+*.frag linguist-vendored=false
