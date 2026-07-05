@@ -2,5 +2,3 @@
 * text=auto
 * linguist-vendored
 *.cpp linguist-vendored=false
-*.vert linguist-vendored=false
-*.frag linguist-vendored=false
